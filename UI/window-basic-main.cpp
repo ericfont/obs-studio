@@ -4344,6 +4344,19 @@ ColorSelect::ColorSelect(QWidget *parent)
 	ui->setupUi(this);
 }
 
+static bool selected_items(obs_scene_t *, obs_sceneitem_t *item, void *param)
+{
+	vector<OBSSceneItem> &items =
+		*reinterpret_cast<vector<OBSSceneItem>*>(param);
+
+	if (obs_sceneitem_selected(item)) {
+		items.emplace_back(item);
+	} else if (obs_sceneitem_is_group(item)) {
+		obs_sceneitem_group_enum_items(item, selected_items, &items);
+	}
+	return true;
+};
+
 void OBSBasic::CreateSourcePopupMenu(int idx, bool preview)
 {
 	QMenu popup(this);
@@ -4497,6 +4510,38 @@ void OBSBasic::CreateSourcePopupMenu(int idx, bool preview)
 
 		ui->actionCopyFilters->setEnabled(true);
 		ui->actionCopySource->setEnabled(true);
+
+		vector<OBSSceneItem> items;
+
+		obs_scene_enum_items(GetCurrentScene(), selected_items, &items);
+
+		bool atLeastOneItemActivateonStartStreamingSetTrue = false;
+		bool atLeastOneItemActivateonStartStreamingSetFalse = false;
+		bool atLeastOneItemActivateonStartRecordingSetTrue = false;
+		bool atLeastOneItemActivateonStartRecordingSetFalse = false;
+
+		for (auto &item : items) {
+			if (obs_sceneitem_activate_on_start_streaming(item) == true)
+				atLeastOneItemActivateonStartStreamingSetTrue = true;
+			else
+				atLeastOneItemActivateonStartStreamingSetFalse = true;
+
+			if (obs_sceneitem_activate_on_start_recording(item) == true)
+				atLeastOneItemActivateonStartRecordingSetTrue = true;
+			else
+				atLeastOneItemActivateonStartRecordingSetFalse = true;
+		}
+
+		action = popup.addAction(QTStr("Activate/Deactivate when Start/Stop Streaming"), this, SLOT(on_actionActivateOnStreaming_triggered()));
+		action->setCheckable(true);
+		action->setChecked(!atLeastOneItemActivateonStartStreamingSetFalse);
+		action->setEnabled(!(atLeastOneItemActivateonStartStreamingSetTrue && atLeastOneItemActivateonStartStreamingSetFalse));
+
+		action = popup.addAction(QTStr("Activate/Deactivate when Start/Stop Recording"), this, SLOT(on_actionActivateOnRecording_triggered()));
+		action->setCheckable(true);
+		action->setChecked(!atLeastOneItemActivateonStartRecordingSetFalse);
+		action->setEnabled(!(atLeastOneItemActivateonStartRecordingSetTrue && atLeastOneItemActivateonStartRecordingSetFalse));
+
 	} else {
 		ui->actionPasteFilters->setEnabled(false);
 	}
@@ -4696,6 +4741,56 @@ void OBSBasic::on_actionRemoveSource_triggered()
 			for (auto &item : items)
 				obs_sceneitem_remove(item);
 		}
+	}
+}
+
+void OBSBasic::on_actionActivateOnStreaming_triggered()
+{
+	vector<OBSSceneItem> items;
+
+	obs_scene_enum_items(GetCurrentScene(), selected_items, &items);
+
+	if (!items.size())
+		return;
+
+	bool atLeastOneItemSetFalse = false;
+
+	for (auto &item : items) {
+		if (obs_sceneitem_activate_on_start_streaming(item) == false) {
+			atLeastOneItemSetFalse = true;
+			break;
+		}
+	}
+
+	bool newSetting = atLeastOneItemSetFalse;
+
+	for (auto &item : items) {
+		obs_sceneitem_set_activate_on_start_streaming(item, newSetting);
+	}
+}
+
+void OBSBasic::on_actionActivateOnRecording_triggered()
+{
+	vector<OBSSceneItem> items;
+
+	obs_scene_enum_items(GetCurrentScene(), selected_items, &items);
+
+	if (!items.size())
+		return;
+
+	bool atLeastOneItemSetFalse = false;
+
+	for (auto &item : items) {
+		if (obs_sceneitem_activate_on_start_recording(item) == false) {
+			atLeastOneItemSetFalse = true;
+			break;
+		}
+	}
+
+	bool newSetting = atLeastOneItemSetFalse;
+
+	for (auto &item : items) {
+		obs_sceneitem_set_activate_on_start_recording(item, newSetting);
 	}
 }
 

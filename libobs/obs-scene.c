@@ -733,6 +733,9 @@ static void scene_load_item(struct obs_scene *scene, obs_data_t *item_data)
 	obs_data_get_vec2(item_data, "pos",    &item->pos);
 	obs_data_get_vec2(item_data, "scale",  &item->scale);
 
+	item->activate_on_start_streaming = obs_data_get_bool(item_data, "activate_on_start_streaming");
+	item->activate_on_start_recording = obs_data_get_bool(item_data, "activate_on_start_recording");
+
 	obs_data_release(item->private_settings);
 	item->private_settings =
 		obs_data_get_obj(item_data, "private_settings");
@@ -850,6 +853,8 @@ static void scene_save_item(obs_data_array_t *array,
 	obs_data_set_int  (item_data, "crop_bottom",  (int)item->crop.bottom);
 	obs_data_set_int  (item_data, "id",           item->id);
 	obs_data_set_bool (item_data, "group_item_backup", !!backup_group);
+	obs_data_set_bool (item_data, "activate_on_start_streaming", item->activate_on_start_streaming);
+	obs_data_set_bool (item_data, "activate_on_start_recording", item->activate_on_start_recording);
 
 	if (item->is_group) {
 		obs_scene_t *group_scene = item->source->context.data;
@@ -1643,6 +1648,8 @@ static obs_sceneitem_t *obs_scene_add_internal(obs_scene_t *scene,
 	item->actions_mutex = mutex;
 	item->user_visible = true;
 	item->locked = false;
+	item->activate_on_start_streaming = false;
+	item->activate_on_start_recording = false;
 	item->is_group = source->info.id == group_info.id;
 	item->private_settings = obs_data_create();
 	item->toggle_visibility = OBS_INVALID_HOTKEY_PAIR_ID;
@@ -2128,6 +2135,48 @@ bool obs_sceneitem_set_locked(obs_sceneitem_t *item, bool lock)
 		return false;
 
 	item->locked = lock;
+
+	return true;
+}
+
+bool obs_sceneitem_activate_on_start_streaming(const obs_sceneitem_t *item)
+{
+	return item ? item->activate_on_start_streaming : false;
+}
+
+bool obs_sceneitem_set_activate_on_start_streaming(obs_sceneitem_t *item, bool activate_on_start_streaming)
+{
+	if (!item)
+		return false;
+
+	if (item->activate_on_start_streaming == activate_on_start_streaming)
+		return false;
+
+	if (!item->parent)
+		return false;
+
+	item->activate_on_start_streaming = activate_on_start_streaming;
+
+	return true;
+}
+
+bool obs_sceneitem_activate_on_start_recording(const obs_sceneitem_t *item)
+{
+	return item ? item->activate_on_start_recording : false;
+}
+
+bool obs_sceneitem_set_activate_on_start_recording(obs_sceneitem_t *item, bool activate_on_start_recording)
+{
+	if (!item)
+		return false;
+
+	if (item->activate_on_start_recording == activate_on_start_recording)
+		return false;
+
+	if (!item->parent)
+		return false;
+
+	item->activate_on_start_recording = activate_on_start_recording;
 
 	return true;
 }

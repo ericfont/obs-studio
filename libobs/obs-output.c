@@ -243,6 +243,20 @@ bool obs_output_actual_start(obs_output_t *output)
 			video_output_get_total_frames(output->video);
 		output->starting_drawn_count = obs->video.total_frames;
 		output->starting_lagged_count = obs->video.lagged_frames;
+
+		struct obs_core_data *data = &obs->data;
+		struct obs_source    *source;
+	//	pthread_mutex_lock(&data->sources_mutex);
+
+		source = data->first_source;
+		while (source) {
+			struct obs_source *cur_source = obs_source_get_ref(source);
+			source = (struct obs_source*)source->context.next;
+
+			if (cur_source) {
+				os_atomic_inc_long(&cur_source->showing);
+			}
+		}
 	}
 
 	if (os_atomic_load_long(&output->delay_restart_refs))

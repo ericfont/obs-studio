@@ -990,6 +990,10 @@ EXPORT bool obs_source_showing(const obs_source_t *source);
 #define OBS_SOURCE_FLAG_UNUSED_1               (1<<0)
 /** Specifies to force audio to mono */
 #define OBS_SOURCE_FLAG_FORCE_MONO             (1<<1)
+/** Specifies to force reactivate the source when streaming starts, and to force deactivate when streaming ends */
+#define OBS_SOURCE_FLAG_ACTIVATE_ON_STREAM     (1<<2)
+/** Specifies to force reactivate the source when recording starts, and to force deactivate when recording ends */
+#define OBS_SOURCE_FLAG_ACTIVATE_ON_RECORD     (1<<3)
 
 /**
  * Sets source flags.  Note that these are different from the main output
@@ -1473,6 +1477,10 @@ EXPORT void obs_sceneitem_select(obs_sceneitem_t *item, bool select);
 EXPORT bool obs_sceneitem_selected(const obs_sceneitem_t *item);
 EXPORT bool obs_sceneitem_locked(const obs_sceneitem_t *item);
 EXPORT bool obs_sceneitem_set_locked(obs_sceneitem_t *item, bool lock);
+EXPORT bool obs_sceneitem_activate_on_start_streaming(const obs_sceneitem_t *item);
+EXPORT bool obs_sceneitem_set_activate_on_start_streaming(obs_sceneitem_t *item, bool activate_on_start_streaming);
+EXPORT bool obs_sceneitem_activate_on_start_recording(const obs_sceneitem_t *item);
+EXPORT bool obs_sceneitem_set_activate_on_start_recording(obs_sceneitem_t *item, bool activate_on_start_recording);
 
 /* Functions for getting/setting specific orientation of a scene item */
 EXPORT void obs_sceneitem_set_pos(obs_sceneitem_t *item, const struct vec2 *pos);

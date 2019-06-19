@@ -701,6 +701,8 @@ private slots:
 	void on_scenes_itemDoubleClicked(QListWidgetItem *item);
 	void on_actionAddSource_triggered();
 	void on_actionRemoveSource_triggered();
+	void on_actionActivateOnStreaming_triggered();
+	void on_actionActivateOnRecording_triggered();
 	void on_actionInteract_triggered();
 	void on_actionSourceProperties_triggered();
 	void on_actionSourceUp_triggered();
