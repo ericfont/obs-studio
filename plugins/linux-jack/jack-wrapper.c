@@ -19,8 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <util/threading.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <util/platform.h>
+
+#include <obs-module.h>
 
 #define blog(level, msg, ...) blog(level, "jack-input: " msg, ##__VA_ARGS__)
 
@@ -140,6 +143,28 @@ error:
 
 void deactivate_jack(struct jack_data* data)
 {
+	char *jack_client_connections_file;
+
+	if (data->jack_client) {
+		jack_client_connections_file = obs_module_config_path(strcat(data->device, ".txt"));
+		//char         *file_data = os_quick_write_utf8_file(file);
+
+		const char file_data[8] = "REWRITE";
+
+		os_quick_write_utf8_file("/home/e/hi.txt", file_data, sizeof(file_data), false);
+		os_quick_write_utf8_file(jack_client_connections_file, file_data, sizeof(file_data), false);
+/*
+		if (jack_client_connections_file) {
+			json_root = open_json_file(jack_client_connections_file);
+			bfree(jack_client_connections_file);
+		}
+
+		if (data->jack_ports != NULL) {
+			for (int i = 0; i < data->channels; ++i) {
+			}
+			}*/
+	}
+
 	pthread_mutex_lock(&data->jack_mutex);
 
 	if (data->jack_client) {

@@ -15,6 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <obs-module.h>
+#include <util/platform.h>
 
 OBS_DECLARE_MODULE()
 OBS_MODULE_USE_DEFAULT_LOCALE("linux-jack", "en-US")
@@ -27,6 +28,7 @@ extern struct obs_source_info jack_output_capture;
 
 bool obs_module_load(void)
 {
+	os_mkdirs(obs_module_get_config_path(obs_current_module(), ""));
 	obs_register_source(&jack_output_capture);
 	return true;
 }
