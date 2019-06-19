@@ -58,6 +58,7 @@ static void jack_update(void *vptr, obs_data_t *settings)
 	const char *new_device;
 	bool settings_changed      = false;
 	bool new_jack_start_server = obs_data_get_bool(settings, "startjack");
+	bool attemptreconnect = obs_data_get_bool(settings, "attemptreconnect");
 	int new_channel_count      = obs_data_get_int(settings, "channels");
 
 	if (new_jack_start_server != data->start_jack_server) {
@@ -118,6 +119,7 @@ static void jack_input_defaults(obs_data_t *settings)
 {
 	obs_data_set_default_int(settings, "channels", 2);
 	obs_data_set_default_bool(settings, "startjack", false);
+	obs_data_set_default_bool(settings, "attemptreconnect", true);
 }
 
 /**
@@ -133,6 +135,19 @@ static obs_properties_t *jack_input_properties(void *unused)
 		obs_module_text("Channels"), 1, 8, 1);
 	obs_properties_add_bool(props, "startjack",
 		obs_module_text("StartJACKServer"));
+
+	// add maximum of 8 channels
+	obs_properties_add_list(props, "channel_1_input", obs_module_text("Channel 1 Input:"), OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
+	obs_properties_add_list(props, "channel_2_input", obs_module_text("Channel 2 Input:"), OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
+	obs_properties_add_list(props, "channel_3_input", obs_module_text("Channel 3 Input:"), OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
+	obs_properties_add_list(props, "channel_4_input", obs_module_text("Channel 4 Input:"), OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
+	obs_properties_add_list(props, "channel_5_input", obs_module_text("Channel 5 Input:"), OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
+	obs_properties_add_list(props, "channel_6_input", obs_module_text("Channel 6 Input:"), OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
+	obs_properties_add_list(props, "channel_7_input", obs_module_text("Channel 7 Input:"), OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
+	obs_properties_add_list(props, "channel_8_input", obs_module_text("Channel 8 Input:"), OBS_COMBO_TYPE_LIST, OBS_COMBO_FORMAT_STRING);
+
+	obs_properties_add_bool(props, "attemptreconnect",
+		obs_module_text("Attempt to reconnect current connections when reload scene."));
 
 	return props;
 }

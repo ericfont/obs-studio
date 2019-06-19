@@ -80,6 +80,11 @@ int jack_process_callback(jack_nframes_t nframes, void* arg)
 	return 0;
 }
 
+static void connect_callback(jack_port_id_t input_port, jack_port_id_t output_port, int connected, void* arg)
+{
+	blog(LOG_INFO, "jack connect_callback indicating ports %d and %d %s\n", input_port, output_port, (connected ? "connected" : "disconnected"));
+}
+
 int_fast32_t jack_init(struct jack_data* data)
 {
 	pthread_mutex_lock(&data->jack_mutex);
@@ -121,6 +126,9 @@ int_fast32_t jack_init(struct jack_data* data)
 		blog(LOG_ERROR, "jack_set_process_callback Error");
 		goto error;
 	}
+
+	if (jack_set_port_connect_callback(data->jack_client, connect_callback, NULL))
+		blog(LOG_WARNING, "jack_set_port_connect_callback failed");
 
 	if (jack_activate(data->jack_client) != 0) {
 		blog(LOG_ERROR,
