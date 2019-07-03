@@ -19,6 +19,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <obs-module.h>
 
+#define JACK_INPUT_MAX_PORTS 8
+
+static const char* const channel_ports_property_names[JACK_INPUT_MAX_PORTS] = {
+   "ports connected to channel 1",
+   "ports connected to channel 2",
+   "ports connected to channel 3",
+   "ports connected to channel 4",
+   "ports connected to channel 5",
+   "ports connected to channel 6",
+   "ports connected to channel 7",
+   "ports connected to channel 8"
+};
+
 /**
  * Returns the name of the plugin
  */
@@ -121,18 +134,62 @@ static void jack_input_defaults(obs_data_t *settings)
 }
 
 /**
+ * Toggle visibility of channel port connections when channel count changes
+ */
+static bool jack_input_channel_count_changed(obs_properties_t *props,
+      obs_property_t *p, obs_data_t *settings)
+{
+	UNUSED_PARAMETER(p);
+	const int channels     = obs_data_get_int(settings, "channels");
+
+	// display port properties for all existing channels
+	for (int i = 0; i < channels; ++i) {
+		obs_property_t *channel_ports_property = obs_properties_get(props, channel_ports_property_names[i]);
+		obs_property_set_visible(channel_ports_property, true);
+		obs_property_modified(channel_ports_property, settings);
+	}
+
+	// hide port properties for the reamining non-existing channels
+	for (int i = channels; i < JACK_INPUT_MAX_PORTS; ++i) {
+		obs_property_t *channel_ports_property = obs_properties_get(props, channel_ports_property_names[i]);
+		obs_property_set_visible(channel_ports_property, false);
+		obs_property_modified(channel_ports_property, settings);
+	}
+
+	return true;
+}
+
+/**
  * Get plugin properties
  */
-static obs_properties_t *jack_input_properties(void *unused)
+static obs_properties_t *jack_input_properties(void *vptr)
 {
-	(void)unused;
+	struct jack_data* data = (struct jack_data*)vptr;
 
 	obs_properties_t *props = obs_properties_create();
 
 	obs_properties_add_int(props, "channels", obs_module_text("Channels"),
 			       1, 8, 1);
+	obs_property_t *channels = obs_properties_add_int(props, "channels",
+		obs_module_text("Channels"), 1, JACK_INPUT_MAX_PORTS, 1);
+
+	obs_property_set_modified_callback(channels, jack_input_channel_count_changed);
+//	obs_property_set_modified_callback(server, xshm_server_changed);
+
 	obs_properties_add_bool(props, "startjack",
 				obs_module_text("StartJACKServer"));
+
+	pthread_mutex_lock(&data->jack_mutex);
+
+//	if (data->channels > 0 && data->jack_ports != NULL) {
+//		for (int i = 0; i < data->channels; ++i) {
+
+	for (int i = 0; i < JACK_INPUT_MAX_PORTS; ++i) {
+			obs_properties_add_editable_list(props, channel_ports_property_names[i], channel_ports_property_names[i], OBS_EDITABLE_LIST_TYPE_STRINGS, NULL, NULL);
+
+	}
+
+	pthread_mutex_unlock(&data->jack_mutex);
 
 	return props;
 }

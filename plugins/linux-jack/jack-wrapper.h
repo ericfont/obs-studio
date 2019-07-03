@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include <jack/jack.h>
+#include <jack/uuid.h>
 #include <obs.h>
 #include <util/threading.h>
 
@@ -48,4 +49,7 @@ int_fast32_t jack_init(struct jack_data *data);
 /**
  * Destroys the jack client and unregisters the ports
  */
-void deactivate_jack(struct jack_data *data);
+void deactivate_jack(struct jack_data* data);
+
+//extern static bool jack_input_channel_count_changed(obs_properties_t *props, obs_property_t *p, obs_data_t *settings);
+
